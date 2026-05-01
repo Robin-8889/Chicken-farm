@@ -77,6 +77,7 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/growth', [FarmRecordController::class, 'storeGrowth'])->name('growth.store');
     Route::post('/eggs', [FarmRecordController::class, 'storeEgg'])->name('eggs.store');
     Route::post('/stocks', [FarmRecordController::class, 'storeStock'])->name('stocks.store');
+    Route::post('/stocks/{stock}/use', [FarmRecordController::class, 'useStock'])->name('stocks.use');
     Route::post('/mortality', [FarmRecordController::class, 'storeMortality'])->name('mortality.store');
     Route::post('/sales', [FarmRecordController::class, 'storeSale'])->name('sales.store');
     Route::post('/expenses', [FarmRecordController::class, 'storeExpense'])->name('expenses.store');

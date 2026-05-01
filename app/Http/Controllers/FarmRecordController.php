@@ -111,6 +111,36 @@ class FarmRecordController extends Controller
         return back()->with('status', 'Stock record saved successfully.');
     }
 
+    public function useStock(Request $request, FarmStock $stock): RedirectResponse
+    {
+        $data = $request->validate([
+            'used_quantity' => ['required', 'numeric', 'min:0.01'],
+            'usage_notes' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $usedQuantity = (float) $data['used_quantity'];
+        $remainingQuantity = (float) $stock->remaining_quantity;
+
+        if ($usedQuantity > $remainingQuantity) {
+            return back()->withErrors([
+                'used_quantity' => 'Used quantity cannot be greater than the current remaining stock.',
+            ]);
+        }
+
+        $stock->quantity_used = (float) $stock->quantity_used + $usedQuantity;
+        $stock->remaining_quantity = $remainingQuantity - $usedQuantity;
+
+        if (!empty($data['usage_notes'])) {
+            $existingNotes = trim((string) $stock->notes);
+            $usageNote = 'Usage: ' . $data['usage_notes'];
+            $stock->notes = $existingNotes === '' ? $usageNote : $existingNotes . "\n" . $usageNote;
+        }
+
+        $stock->save();
+
+        return back()->with('status', 'Stock usage recorded successfully.');
+    }
+
     public function storeMortality(Request $request): RedirectResponse
     {
         $data = $request->validate([

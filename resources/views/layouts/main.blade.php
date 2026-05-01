@@ -139,4 +139,120 @@
             });
         })();
     </script>
+
+    <!-- Global Growth Chart Functions -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        let currentChart = null;
+        let currentChart2 = null;
+        let currentStockModal = null;
+
+        function closeGrowthModal() {
+            document.getElementById('growthModal').classList.add('hidden');
+            if (window.currentChart) window.currentChart.destroy();
+            if (window.currentChart2) window.currentChart2.destroy();
+        }
+
+        function openStockPanel(event, element) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+
+            const modal = document.getElementById('stockModal');
+            if (!modal || !element) return;
+
+            currentStockModal = element;
+
+            const setText = (id, value) => {
+                const target = document.getElementById(id);
+                if (target) target.textContent = value;
+            };
+
+            const setValue = (id, value) => {
+                const target = document.getElementById(id);
+                if (target) target.value = value;
+            };
+
+            setText('stockModalTitle', element.dataset.name || 'Stock');
+            setText('stockModalCategory', element.dataset.categoryLabel || '');
+            setText('stockModalUnit', element.dataset.unit || '');
+            setText('stockModalPurchased', element.dataset.purchased || '0');
+            setText('stockModalUsed', element.dataset.used || '0');
+            setText('stockModalRemaining', element.dataset.remaining || '0');
+            setText('stockModalCost', element.dataset.cost || '0');
+            setText('stockModalExpiry', element.dataset.expiry || 'N/A');
+            setText('stockModalThreshold', element.dataset.threshold || '0');
+            setText('stockModalNotes', element.dataset.notes || 'No notes available.');
+            setText('stockModalBatch', element.dataset.batch || 'No batch linked');
+
+            const icon = document.getElementById('stockModalIcon');
+            if (icon) {
+                icon.innerHTML = getStockIconMarkup(element.dataset.category || 'equipment');
+            }
+
+            const form = document.getElementById('use-stock-form');
+            if (form) {
+                form.action = element.dataset.useUrl || form.action;
+            }
+
+            setValue('used_quantity', '');
+            setValue('usage_notes', '');
+            setValue('used_quantity_preview', '');
+            modal.classList.remove('hidden');
+            previewUsage();
+        }
+
+        function closeStockModal() {
+            const modal = document.getElementById('stockModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function updateRemaining() {
+            const purchasedEl = document.getElementById('quantity_purchased');
+            const usedEl = document.getElementById('quantity_used');
+            const remainingEl = document.getElementById('remaining_quantity');
+
+            if (!purchasedEl || !usedEl || !remainingEl) return;
+
+            const purchased = parseFloat(purchasedEl.value) || 0;
+            const used = parseFloat(usedEl.value) || 0;
+            remainingEl.value = Math.max(0, purchased - used);
+        }
+
+        function previewUsage() {
+            const usedInput = document.getElementById('used_quantity');
+            const remainingBefore = parseFloat(document.getElementById('stockModalRemaining')?.textContent || '0') || 0;
+            const preview = document.getElementById('used_quantity_preview');
+            if (!usedInput || !preview) return;
+
+            const used = parseFloat(usedInput.value) || 0;
+            const remainingAfter = Math.max(0, remainingBefore - used);
+            preview.textContent = remainingAfter.toFixed(2);
+        }
+
+        function getStockIconMarkup(category) {
+            if (category === 'feed') {
+                return `
+                    <svg class="h-10 w-10" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 19h16M7 19V7l5-3 5 3v12M9 19v-4h6v4" />
+                    </svg>
+                `;
+            }
+
+            if (category === 'medicine') {
+                return `
+                    <svg class="h-10 w-10" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M10 3h4M9 3h6v4H9V3Zm1 4h4l1 11a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2l1-11Zm1 4h2m-1-1v2" />
+                    </svg>
+                `;
+            }
+
+            return `
+                <svg class="h-10 w-10" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 7h16v10H4V7Zm2 0v10m12-10v10M7 7l1-3h8l1 3M8 17l-1 3m10-3 1 3" />
+                </svg>
+            `;
+        }
+    </script>
 </html>
